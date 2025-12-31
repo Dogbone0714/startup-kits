@@ -32,7 +32,14 @@ def query_company():
     - queryValue: 統一編號或公司名稱
     """
     try:
+        # 確保請求有 JSON 數據
+        if not request.is_json:
+            return jsonify({'error': '請求必須包含 JSON 數據'}), 400
+        
         data = request.get_json()
+        if not data:
+            return jsonify({'error': '請輸入統一編號或公司名稱'}), 400
+        
         query_type = data.get('queryType', 'taxId')
         query_value = data.get('queryValue', '')
         
@@ -316,10 +323,20 @@ def query_company():
                 return jsonify({'error': f'查詢失敗：{error_message}'}), 500
             
     except Exception as e:
-        error_message = str(e).lower()
-        if 'connection' in error_message or 'max' in error_message or 'too many' in error_message or 'unpack' in error_message:
+        error_message = str(e)
+        error_type = type(e).__name__
+        print(f"[ERROR] 最外層錯誤類型: {error_type}")
+        print(f"[ERROR] 最外層錯誤訊息: {error_message}")
+        import traceback
+        print(f"[ERROR] 最外層錯誤堆疊:\n{traceback.format_exc()}")
+        
+        error_lower = error_message.lower()
+        if 'connection' in error_lower or 'max' in error_lower or 'too many' in error_lower or 'unpack' in error_lower:
             return jsonify({'error': '超出同時最大連線數量，請稍後再試。請縮小搜尋範圍'}), 500
-        return jsonify({'error': f'伺服器錯誤：{str(e)}'}), 500
+        elif 'json' in error_lower or 'decode' in error_lower:
+            return jsonify({'error': '請求格式錯誤，請檢查輸入數據'}), 400
+        else:
+            return jsonify({'error': f'伺服器錯誤：{error_message}'}), 500
 
 @app.route('/health', methods=['GET'])
 def health():

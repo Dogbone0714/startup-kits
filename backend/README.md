@@ -4,13 +4,13 @@ Python Flask 後端服務，用於處理公司資料查詢。
 
 ## 安裝依賴
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
 ## 啟動服務
 
-```bash
+```
 python app.py
 ```
 
