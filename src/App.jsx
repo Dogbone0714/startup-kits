@@ -6,7 +6,6 @@ import Tools from './components/Tools'
 import SalaryCalculator from './components/SalaryCalculator'
 import InsuranceRates from './components/InsuranceRates'
 import InvoiceAssistant from './components/InvoiceAssistant'
-import CompanyQuery from './components/CompanyQuery'
 import Footer from './components/Footer'
 import Disclaimer from './components/Disclaimer'
 import ScrollToTop from './components/ScrollToTop'
@@ -39,10 +38,6 @@ function App() {
       } else if (hash === '#invoice-assistant') {
         setShowDisclaimer(false)
         setCurrentPage('invoice-assistant')
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      } else if (hash === '#company-query') {
-        setShowDisclaimer(false)
-        setCurrentPage('company-query')
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         setShowDisclaimer(false)
@@ -117,17 +112,6 @@ function App() {
       <div className="App">
         <Header />
         <InvoiceAssistant />
-        <Footer onShowDisclaimer={handleShowDisclaimer} />
-        <ScrollToTop />
-      </div>
-    )
-  }
-
-  if (currentPage === 'company-query') {
-    return (
-      <div className="App">
-        <Header />
-        <CompanyQuery />
         <Footer onShowDisclaimer={handleShowDisclaimer} />
         <ScrollToTop />
       </div>

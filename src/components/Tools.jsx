@@ -67,24 +67,6 @@ const Tools = () => {
             </div>
           </a>
 
-          <a 
-            href="#company-query"
-            className="tool-card tool-card-link"
-            onClick={(e) => {
-              e.preventDefault()
-              window.location.hash = '#company-query'
-            }}
-          >
-            <div className="tool-icon">🏢</div>
-            <h3 className="tool-title">公司資料查詢</h3>
-            <p className="tool-description">
-              快速查詢公司統一編號和基本資料
-            </p>
-            <div className="tool-status">
-              <span className="status-badge available">立即使用</span>
-            </div>
-          </a>
-
           <div className="tool-card">
             <div className="tool-icon">💼</div>
             <h3 className="tool-title">資遣費計算機</h3>
