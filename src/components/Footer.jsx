@@ -16,8 +16,8 @@ const Footer = ({ onShowDisclaimer }) => {
   return (
     <footer className="footer">
       <div className="footer-container">
-        <div className="footer-content">
-          <div className="footer-section">
+        <div className="footer-main">
+          <div className="footer-left">
             <div className="footer-logo">
               <span className="logo-icon">🚀</span>
               <span className="logo-text">Startup Kits</span>
@@ -27,26 +27,16 @@ const Footer = ({ onShowDisclaimer }) => {
             </p>
           </div>
 
-          <div className="footer-section">
-            <h4 className="footer-title">快速連結</h4>
-            <ul className="footer-links">
-              <li><a href="#resources">資源</a></li>
-              <li><a href="#tools">工具</a></li>
-              <li><a href="#guides">指南</a></li>
-              <li><a href="#community">社群</a></li>
-            </ul>
+          <div className="footer-right">
+            <p className="footer-disclaimer-text">
+              閱覽此網站即表示您同意我們的 <a href="#" onClick={handleDisclaimerClick} className="footer-disclaimer-link">免責條款</a>。請自行做好資料正確性的調查與確認，做出的決策與本網站無關，請自行承擔。
+            </p>
+            <p className="footer-contact-text">
+              若資訊有誤或者有建議，請來信至 <a href="mailto:contacts@opennuu.com" className="footer-contact-link">contacts@opennuu.com</a>
+            </p>
+            <p>Startup Kits 新創公司資源站 © 2025 | Made with <a href="https://hhk.one/" target="_blank" rel="noopener noreferrer" className="footer-author-link">康皓雄(康康)</a> in 康普思生活通有限公司</p>
+            <p className="footer-update-text">最後更新：2025-12-31</p>
           </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p className="footer-disclaimer-text">
-            閱覽此網站即表示您同意我們的 <a href="#" onClick={handleDisclaimerClick} className="footer-disclaimer-link">免責條款</a>。請自行做好資料正確性的調查與確認，做出的決策與本網站無關，請自行承擔。
-          </p>
-          <p className="footer-contact-text">
-            若資訊有誤或者有建議，請來信至 <a href="mailto:contacts@opennuu.com" className="footer-contact-link">contacts@opennuu.com</a>
-          </p>
-          <p>Startup Kits 新創公司資源站 © 2025 | Made with <a href="https://hhk.one/" target="_blank" rel="noopener noreferrer" className="footer-author-link">康皓雄(康康)</a> in 康普思生活通有限公司</p>
-          <p className="footer-update-text">最後更新：2025-12-31</p>
         </div>
       </div>
     </footer>
