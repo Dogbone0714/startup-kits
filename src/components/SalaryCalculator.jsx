@@ -99,19 +99,46 @@ const SalaryCalculator = () => {
     if (!resultRef.current) return
 
     setIsDownloading(true)
+    
+    // 滾動到結果區域
+    resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    
+    // 等待滾動完成
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     try {
+      // 記錄原始樣式
+      const originalWidth = resultRef.current.style.width
+      const originalMaxWidth = resultRef.current.style.maxWidth
+
+      // 設定固定尺寸以確保截圖不跑版
+      resultRef.current.style.width = `${resultRef.current.offsetWidth}px`
+      resultRef.current.style.maxWidth = `${resultRef.current.offsetWidth}px`
+
       const canvas = await html2canvas(resultRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        removeContainer: false,
+        imageTimeout: 15000,
+        width: resultRef.current.offsetWidth,
+        height: resultRef.current.scrollHeight,
+        x: 0,
+        y: 0
       })
+
+      // 恢復原始樣式
+      resultRef.current.style.width = originalWidth
+      resultRef.current.style.maxWidth = originalMaxWidth
 
       const link = document.createElement('a')
       link.download = `薪資計算結果_${formatCurrency(monthlySalary)}_${new Date().toISOString().split('T')[0]}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.href = canvas.toDataURL('image/png', 0.95)
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
     } catch (error) {
       console.error('下載圖片失敗:', error)
       alert('下載圖片失敗，請稍後再試')

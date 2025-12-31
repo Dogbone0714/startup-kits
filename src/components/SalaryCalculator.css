@@ -201,6 +201,8 @@
   background: var(--bg-primary);
   padding: 1.5rem;
   border-radius: 0.5rem;
+  box-sizing: border-box;
+  min-width: 500px;
 }
 
 .result-header {

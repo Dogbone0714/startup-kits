@@ -49,16 +49,23 @@ const Tools = () => {
             </div>
           </a>
 
-          <div className="tool-card">
+          <a 
+            href="#invoice-assistant"
+            className="tool-card tool-card-link"
+            onClick={(e) => {
+              e.preventDefault()
+              window.location.hash = '#invoice-assistant'
+            }}
+          >
             <div className="tool-icon">🧾</div>
             <h3 className="tool-title">開發票小助理</h3>
             <p className="tool-description">
               協助計算發票金額、稅額和總計
             </p>
             <div className="tool-status">
-              <span className="status-badge coming-soon">即將推出</span>
+              <span className="status-badge available">立即使用</span>
             </div>
-          </div>
+          </a>
 
           <div className="tool-card">
             <div className="tool-icon">🏢</div>
