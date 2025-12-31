@@ -45,6 +45,18 @@
   align-items: center;
 }
 
+.tool-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tool-card-link:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
 .tool-card:hover {
   border-color: var(--primary-color);
   transform: translateY(-4px);

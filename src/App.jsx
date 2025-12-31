@@ -3,6 +3,7 @@ import Header from './components/Header'
 import Hero from './components/Hero'
 import Resources from './components/Resources'
 import Tools from './components/Tools'
+import SalaryCalculator from './components/SalaryCalculator'
 import Footer from './components/Footer'
 import Disclaimer from './components/Disclaimer'
 import ScrollToTop from './components/ScrollToTop'
@@ -23,6 +24,10 @@ function App() {
       } else if (hash === '#tools') {
         setShowDisclaimer(false)
         setCurrentPage('tools')
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (hash === '#salary-calculator') {
+        setShowDisclaimer(false)
+        setCurrentPage('salary-calculator')
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         setShowDisclaimer(false)
@@ -66,6 +71,17 @@ function App() {
       <div className="App">
         <Disclaimer onBack={handleBack} />
         <Footer onShowDisclaimer={handleShowDisclaimer} />
+      </div>
+    )
+  }
+
+  if (currentPage === 'salary-calculator') {
+    return (
+      <div className="App">
+        <Header />
+        <SalaryCalculator />
+        <Footer onShowDisclaimer={handleShowDisclaimer} />
+        <ScrollToTop />
       </div>
     )
   }

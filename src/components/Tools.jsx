@@ -13,16 +13,23 @@ const Tools = () => {
         </div>
 
         <div className="tools-grid">
-          <div className="tool-card">
+          <a 
+            href="#salary-calculator"
+            className="tool-card tool-card-link"
+            onClick={(e) => {
+              e.preventDefault()
+              window.location.hash = '#salary-calculator'
+            }}
+          >
             <div className="tool-icon">💰</div>
             <h3 className="tool-title">薪資計算機</h3>
             <p className="tool-description">
               快速計算員工薪資、勞健保費用和實領金額
             </p>
             <div className="tool-status">
-              <span className="status-badge coming-soon">即將推出</span>
+              <span className="status-badge available">立即使用</span>
             </div>
-          </div>
+          </a>
 
           <div className="tool-card">
             <div className="tool-icon">📊</div>
