@@ -31,16 +31,23 @@ const Tools = () => {
             </div>
           </a>
 
-          <div className="tool-card">
+          <a 
+            href="#insurance-rates"
+            className="tool-card tool-card-link"
+            onClick={(e) => {
+              e.preventDefault()
+              window.location.hash = '#insurance-rates'
+            }}
+          >
             <div className="tool-icon">📊</div>
             <h3 className="tool-title">勞健保費率</h3>
             <p className="tool-description">
               查詢最新的勞保、健保費率級距表
             </p>
             <div className="tool-status">
-              <span className="status-badge coming-soon">即將推出</span>
+              <span className="status-badge available">立即使用</span>
             </div>
-          </div>
+          </a>
 
           <div className="tool-card">
             <div className="tool-icon">🧾</div>

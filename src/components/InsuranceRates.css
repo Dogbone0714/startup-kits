@@ -1,0 +1,238 @@
+.insurance-rates-page {
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  padding: 2rem 1rem;
+}
+
+.insurance-rates-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.rates-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.rates-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.rates-description {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.rates-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-item {
+  background: var(--bg-primary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.summary-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.summary-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.summary-unit {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.search-section {
+  background: var(--bg-primary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.search-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+}
+
+.search-section {
+  position: relative;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 1.5rem;
+  top: 3.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--text-secondary);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.clear-btn:hover {
+  background: var(--text-primary);
+}
+
+.rates-table-wrapper {
+  background: var(--bg-primary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.rates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.rates-table thead {
+  background: var(--bg-secondary);
+}
+
+.rates-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.rates-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: var(--text-secondary);
+}
+
+.rates-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.rates-table tbody tr.highlight-row {
+  background: rgba(99, 102, 241, 0.05);
+  font-weight: 500;
+}
+
+.rate-label {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rates-info {
+  background: var(--bg-primary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.rates-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.rates-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.rates-info li {
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.rates-info li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.info-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary-color);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .insurance-rates-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .rates-title {
+    font-size: 2rem;
+  }
+
+  .rates-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .rates-table {
+    font-size: 0.75rem;
+  }
+
+  .rates-table th,
+  .rates-table td {
+    padding: 0.5rem;
+  }
+
+  .search-input {
+    padding-right: 4rem;
+  }
+}
+

@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import Resources from './components/Resources'
 import Tools from './components/Tools'
 import SalaryCalculator from './components/SalaryCalculator'
+import InsuranceRates from './components/InsuranceRates'
 import Footer from './components/Footer'
 import Disclaimer from './components/Disclaimer'
 import ScrollToTop from './components/ScrollToTop'
@@ -28,6 +29,10 @@ function App() {
       } else if (hash === '#salary-calculator') {
         setShowDisclaimer(false)
         setCurrentPage('salary-calculator')
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (hash === '#insurance-rates') {
+        setShowDisclaimer(false)
+        setCurrentPage('insurance-rates')
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         setShowDisclaimer(false)
@@ -80,6 +85,17 @@ function App() {
       <div className="App">
         <Header />
         <SalaryCalculator />
+        <Footer onShowDisclaimer={handleShowDisclaimer} />
+        <ScrollToTop />
+      </div>
+    )
+  }
+
+  if (currentPage === 'insurance-rates') {
+    return (
+      <div className="App">
+        <Header />
+        <InsuranceRates />
         <Footer onShowDisclaimer={handleShowDisclaimer} />
         <ScrollToTop />
       </div>
