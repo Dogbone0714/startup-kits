@@ -62,7 +62,21 @@ def query_company():
             
             def fetch_api(url, api_name):
                 try:
-                    response = requests.get(url, timeout=15)
+                    # 設置請求頭，模擬真實瀏覽器請求
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Referer': 'https://data.gcis.nat.gov.tw/',
+                        'Origin': 'https://data.gcis.nat.gov.tw',
+                        'Connection': 'keep-alive',
+                        'Sec-Fetch-Dest': 'empty',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Site': 'same-origin'
+                    }
+                    
+                    response = requests.get(url, timeout=15, headers=headers)
                     print(f"[DEBUG] {api_name} HTTP 狀態碼: {response.status_code}")
                     if response.status_code == 200:
                         # 檢查回應內容是否為空
