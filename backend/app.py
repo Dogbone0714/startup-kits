@@ -16,8 +16,15 @@ GCIS_API_BASE_URL_5 = "https://data.gcis.nat.gov.tw/od/data/api/F570BC9A-DA4C-48
 GCIS_API_BASE_URL_6 = "https://data.gcis.nat.gov.tw/od/data/api/A1B4CBFF-2D3A-409B-8A78-2AD94F63AE4A"  # 商業登記資料（使用 Business_Name 和 Business_Current_Status）
 GCIS_API_BASE_URL_7 = "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396"  # 董監事/股東資料（使用 Business_Accounting_NO）
 
-@app.route('/api/company/query', methods=['POST'])
+@app.route('/api/company/query', methods=['POST', 'OPTIONS'])
 def query_company():
+    # 處理 CORS 預檢請求
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response
     """
     查詢公司資料
     接收參數:
