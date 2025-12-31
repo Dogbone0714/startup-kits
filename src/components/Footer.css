@@ -71,6 +71,78 @@
   font-size: 0.875rem;
 }
 
+.footer-bottom p {
+  margin-bottom: 1rem;
+}
+
+.footer-disclaimer-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem !important;
+}
+
+.footer-contact-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+}
+
+.footer-contact-link {
+  color: white;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.footer-contact-link:hover {
+  opacity: 0.8;
+}
+
+.footer-disclaimer-link {
+  color: white;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.footer-disclaimer-link:hover {
+  opacity: 0.8;
+}
+
+.footer-links-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.footer-link:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.footer-author-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.footer-author-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .footer {
     padding: 2rem 1.5rem 1rem;
