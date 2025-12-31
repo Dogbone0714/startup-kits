@@ -236,6 +236,19 @@
   word-wrap: break-word;
 }
 
+.inline-json {
+  background: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+}
+
 .results-header {
   display: flex;
   justify-content: space-between;

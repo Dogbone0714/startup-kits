@@ -4,12 +4,9 @@ import './CompanyQuery.css'
 const CompanyQuery = () => {
   const [queryType, setQueryType] = useState('taxId') // 'taxId' or 'name'
   const [queryValue, setQueryValue] = useState('')
-  const [includeDetails, setIncludeDetails] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [loadingDetail, setLoadingDetail] = useState(false)
   const [results, setResults] = useState(null)
   const [error, setError] = useState(null)
-  const [selectedCompany, setSelectedCompany] = useState(null) // 選中要查詢詳細資料的公司
 
   const formatCurrency = (amount) => {
     if (!amount) return '-'
@@ -276,10 +273,7 @@ const CompanyQuery = () => {
       }
       
       const data = {
-        basicInfo: basicInfoData,
-        capital: [],
-        directors: [],
-        president: []
+        basicInfo: basicInfoData
       }
       
       console.log('合併後的資料:', data)
@@ -288,101 +282,249 @@ const CompanyQuery = () => {
       if (data.basicInfo && data.basicInfo.length > 0) {
         console.log('原始基本資料欄位:', Object.keys(data.basicInfo[0]))
         console.log('原始基本資料完整內容:', JSON.stringify(data.basicInfo[0], null, 2))
-      }
-      if (data.capital && data.capital.length > 0) {
-        console.log('原始資本額資料欄位:', Object.keys(data.capital[0]))
-        console.log('原始資本額資料完整內容:', JSON.stringify(data.capital[0], null, 2))
+        console.log('原始資料的所有鍵值對:', Object.entries(data.basicInfo[0]).map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`))
       }
       
       // 轉換 API 資料格式為組件使用的格式
       
-      // 處理基本資料 - 使用 TEJ API 的資料
+      // 處理基本資料 - 直接從原始資料中提取所有欄位
       const formattedBasicData = data.basicInfo.map((item, index) => {
-        // 使用 getField 函數直接從 TEJ API 資料中提取欄位
+        // 保留原始資料
+        const originalData = { ...item }
         
-        // 先從基本資料中提取資本額（可能直接包含在基本資料中）
-        // 第二個 API 使用 Capital_Stock_Amount 和 Paid_In_Capital_Amount
-        const capitalTotal = getField(item, [
-          'Capital_Stock_Amount', 'capital_stock_amount', 'CapitalStockAmount',
-          'CAPITAL_STOCK_AMOUNT', 'Capital_Stock_Total', 'capital_stock_total', 'CapitalStockTotal',
-          'CAPITAL_STOCK_TOTAL', '資本總額', 'capitalTotal', 'CapitalTotal', 'capital_total',
-          'Capital_Amount', 'capital_amount', '資本額', '總資本額'
-        ])
+        console.log(`[DEBUG] ========== 處理第 ${index + 1} 筆資料 ==========`)
+        console.log(`[DEBUG] 原始資料的所有鍵名:`, Object.keys(originalData))
+        console.log(`[DEBUG] 原始資料的鍵值對:`, Object.entries(originalData).map(([key, value]) => {
+          const displayValue = typeof value === 'object' && value !== null 
+            ? (Array.isArray(value) ? `[陣列，長度: ${value.length}]` : `{物件，鍵: ${Object.keys(value).join(', ')}}`)
+            : String(value).substring(0, 100)
+          return `${key}: ${displayValue}`
+        }))
+        console.log(`[DEBUG] 原始資料完整 JSON:`, JSON.stringify(originalData, null, 2))
         
-        const paidInCapital = getField(item, [
-          'Paid_In_Capital_Amount', 'paid_in_capital_amount', 'PaidInCapitalAmount', 'PAID_IN_CAPITAL_AMOUNT',
-          'Capital_Stock_Total_Paid_In', 'capital_stock_total_paid_in', 'CapitalStockTotalPaidIn',
-          'CAPITAL_STOCK_TOTAL_PAID_IN', '實收資本額', 'paidInCapital', 'PaidInCapital',
-          'Paid_In_Capital', 'paid_in_capital', '實收資本', 'PaidCapital', 'paid_capital',
-          'paid_in', 'PaidIn', '實收', '實收額', 'Capital_Paid', 'capital_paid',
-          'Total_Paid_In', 'total_paid_in', 'TotalPaidIn', 'totalPaidIn',
-          '實收資本額_新台幣'
-        ])
+        // 檢查關鍵欄位是否存在
+        console.log(`[DEBUG] 關鍵欄位檢查:`, {
+          'Company_Name': originalData['Company_Name'],
+          'Business_Accounting_NO': originalData['Business_Accounting_NO'],
+          'Company_Status_Desc': originalData['Company_Status_Desc'],
+          'Company_Setup_Date': originalData['Company_Setup_Date'],
+          'Change_Of_Approval_Data': originalData['Change_Of_Approval_Data'],
+          'Register_Organization_Desc': originalData['Register_Organization_Desc'],
+          'Capital_Stock_Amount': originalData['Capital_Stock_Amount'],
+          'Paid_In_Capital_Amount': originalData['Paid_In_Capital_Amount'],
+          'Responsible_Name': originalData['Responsible_Name'],
+          'Company_Location': originalData['Company_Location']
+        })
         
-        // 提取公司狀態
-        const status = getField(item, [
-          'Company_Status', 'company_status', 'CompanyStatus', 'COMPANY_STATUS',
-          '公司狀態', 'status', 'Status', 'STATUS', 'companyStatus',
-          'Company_Status_Desc', 'company_status_desc', '狀態', '狀態代碼',
-          'Status_Code', 'status_code', 'STATUS_CODE'
-        ])
+        // 輔助函數：從原始資料中查找欄位值（支援多種可能的鍵名）
+        const findValue = (possibleKeys, transformFn = null, fieldName = '') => {
+          // 先嘗試直接匹配
+          for (const key of possibleKeys) {
+            if (originalData[key] !== undefined && originalData[key] !== null && originalData[key] !== '') {
+              const value = transformFn ? transformFn(originalData[key]) : originalData[key]
+              if (fieldName) console.log(`[DEBUG] ${fieldName} 找到於鍵: ${key}, 值: ${value}`)
+              return value
+            }
+          }
+          
+          // 如果找不到，嘗試不區分大小寫匹配
+          const lowerKeys = possibleKeys.map(k => k.toLowerCase())
+          for (const key in originalData) {
+            if (lowerKeys.includes(key.toLowerCase())) {
+              const value = originalData[key]
+              if (value !== undefined && value !== null && value !== '') {
+                const result = transformFn ? transformFn(value) : value
+                if (fieldName) console.log(`[DEBUG] ${fieldName} 找到於鍵（不區分大小寫）: ${key}, 值: ${result}`)
+                return result
+              }
+            }
+          }
+          
+          // 如果還是找不到，嘗試部分匹配
+          for (const possibleKey of possibleKeys) {
+            const keyLower = possibleKey.toLowerCase()
+            for (const key in originalData) {
+              if (key.toLowerCase().includes(keyLower) || keyLower.includes(key.toLowerCase())) {
+                const value = originalData[key]
+                if (value !== undefined && value !== null && value !== '') {
+                  const result = transformFn ? transformFn(value) : value
+                  if (fieldName) console.log(`[DEBUG] ${fieldName} 找到於鍵（部分匹配）: ${key}, 值: ${result}`)
+                  return result
+                }
+              }
+            }
+          }
+          
+          if (fieldName) console.log(`[DEBUG] ${fieldName} 未找到，嘗試的鍵:`, possibleKeys.slice(0, 5), '...')
+          return null
+        }
         
-        // 提取設立日期（經濟部商業司 API 使用 Company_Setup_Date）
-        const establishDate = getField(item, [
-          'Company_Setup_Date', 'company_setup_date', 'CompanySetupDate', 'COMPANY_SETUP_DATE',
+        // 提取公司名稱 - 優先使用實際 API 的鍵名
+        const name = findValue([
+          'Company_Name', // 實際 API 鍵名（優先）
+          'company_name', 'CompanyName', 'COMPANY_NAME', 'companyName',
+          'name', 'Name', 'NAME', 'company_name_cn', 'companyNameCn',
+          'company_name_zh', 'companyNameZh',
+          '公司名稱', '名稱', '公司名', '公司全名', '企業名稱',
+          'title', 'Title', 'TITLE', 'company_title', 'companyTitle'
+        ], null, '公司名稱') || '-'
+        
+        // 提取統一編號 - 優先使用實際 API 的鍵名
+        const taxId = findValue([
+          'Business_Accounting_NO', // 實際 API 鍵名（優先）
+          'business_accounting_no', 'BusinessAccountingNO',
+          'BUSINESS_ACCOUNTING_NO', 'business_no', 'businessNo', 'business_number', 'businessNumber',
+          'taxId', 'TaxId', 'TAX_ID', 'tax_id', 'taxNo', 'tax_no',
+          '統一編號', '統編', '統編號', '統一編號號碼', '稅籍編號',
+          'id', 'Id', 'ID', 'company_id', 'companyId', 'companyID'
+        ], null, '統一編號') || '-'
+        
+        // 提取公司狀態 - 優先使用 Company_Status_Desc（描述），如果沒有則使用 Company_Status（代碼）
+        const statusRaw = findValue([
+          'Company_Status_Desc', // 實際 API 鍵名（描述，優先）
+          'Company_Status', // 實際 API 鍵名（代碼）
+          'company_status_desc', 'company_status', 'CompanyStatus', 'COMPANY_STATUS',
+          'status', 'Status', 'STATUS', 'companyStatus',
+          'statusDesc', 'status_desc',
+          'Status_Code', 'status_code', 'STATUS_CODE', 'statusCode',
+          '公司狀態', '狀態', '狀態代碼', '狀態描述', '公司狀態描述',
+          'state', 'State', 'STATE', 'company_state', 'companyState'
+        ], null, '公司狀態')
+        const status = statusRaw ? getCompanyStatusText(statusRaw) : '-'
+        
+        // 提取設立日期 - 優先使用實際 API 的鍵名
+        const establishDate = findValue([
+          'Company_Setup_Date', // 實際 API 鍵名（優先）
+          'company_setup_date', 'CompanySetupDate', 'COMPANY_SETUP_DATE',
           'Company_Establishment_Date', 'company_establishment_date', 'CompanyEstablishmentDate',
-          'COMPANY_ESTABLISHMENT_DATE', '設立日期', 'establishDate', 'EstablishDate',
-          'Establishment_Date', 'establishment_date', 'establish_date', '成立日期',
-          'establishmentDate', 'establishment', '設立', '成立', '設立年月日',
-          'Establishment', 'ESTABLISHMENT_DATE', 'Setup_Date', 'setup_date'
-        ])
+          'COMPANY_ESTABLISHMENT_DATE', 'Setup_Date', 'setup_date',
+          'establishDate', 'EstablishDate', 'establishmentDate', 'EstablishmentDate',
+          'Establishment_Date', 'establishment_date', 'establish_date',
+          '設立日期', '成立日期', '設立年月日', '成立年月日', '設立時間', '成立時間',
+          'created_date', 'createdDate', 'CreatedDate', 'create_date', 'createDate'
+        ], null, '設立日期') || '-'
         
-        // 提取最後變更日期（優先讀取 Change_Of_Approval_Data）
-        const lastChangeDate = getField(item, [
-          'Change_Of_Approval_Data', 'change_of_approval_data', 'ChangeOfApprovalData',
-          'CHANGE_OF_APPROVAL_DATA'
-        ]) || getField(item, [
-          '最後變更日期', '變更日期',
+        // 提取最後變更日期 - 優先使用實際 API 的鍵名
+        const lastChangeDate = findValue([
+          'Change_Of_Approval_Data', // 實際 API 鍵名（優先）
+          'change_of_approval_data', 'ChangeOfApprovalData',
+          'CHANGE_OF_APPROVAL_DATA',
           'Company_Last_Change_Date', 'company_last_change_date', 'CompanyLastChangeDate',
           'COMPANY_LAST_CHANGE_DATE', 'lastChangeDate', 'LastChangeDate',
-          'Last_Change_Date', 'last_change_date',
-          'Change_Date', 'change_date', 'Last_Update_Date', 'last_update_date',
-          'Update_Date', 'update_date', 'Modified_Date', 'modified_date'
-        ])
+          'Last_Change_Date', 'last_change_date', 'Change_Date', 'change_date',
+          'Last_Update_Date', 'last_update_date', 'Update_Date', 'update_date',
+          'Modified_Date', 'modified_date', 'modifiedDate', 'ModifiedDate',
+          '最後變更日期', '變更日期', '更新日期', '最後更新日期', '修改日期',
+          'updated_date', 'updatedDate', 'UpdatedDate', 'updateDate', 'UpdateDate'
+        ], null, '最後變更日期') || '-'
         
-        // 提取登記機關（經濟部商業司 API 使用 Register_Organization_Desc）
-        const registrationAuthority = getField(item, [
-          'Register_Organization_Desc', 'register_organization_desc', 'RegisterOrganizationDesc',
-          'REGISTER_ORGANIZATION_DESC', '登記機關', '登記單位',
-          'Agency', 'agency', 'AGENCY',
+        // 提取登記機關 - 優先使用 Register_Organization_Desc（描述）
+        const registrationAuthority = findValue([
+          'Register_Organization_Desc', // 實際 API 鍵名（描述，優先）
+          'Register_Organization', // 實際 API 鍵名（代碼）
+          'register_organization_desc', 'register_organization', 'RegisterOrganizationDesc',
+          'REGISTER_ORGANIZATION_DESC',
+          'Agency', 'agency', 'AGENCY', 'registrationAgency', 'registration_agency',
           'Registration_Authority', 'registration_authority', 'RegistrationAuthority',
           'REGISTRATION_AUTHORITY', 'registrationAuthority',
-          'Registration_Office', 'registration_office', '登記處',
-          'Register_Office', 'register_office', '登記所'
-        ])
+          'Registration_Office', 'registration_office', 'Register_Office', 'register_office',
+          '登記機關', '登記單位', '登記處', '登記所', '主管機關', '登記機構',
+          'org', 'Org', 'ORG', 'organization', 'Organization', 'ORGANIZATION'
+        ], null, '登記機關') || '-'
         
-        return {
-          name: getField(item, [
-            'Company_Name', 'company_name', 'CompanyName', 'COMPANY_NAME',
-            '公司名稱', 'name', 'Name', 'NAME', 'companyName'
-          ]) || '-',
-          taxId: getField(item, [
-            'Business_Accounting_NO', 'business_accounting_no', 'BusinessAccountingNO',
-            'BUSINESS_ACCOUNTING_NO', '統一編號', 'taxId', 'TaxId', 'TAX_ID',
-            'tax_id', 'taxNo', 'tax_no', '統編'
-          ]) || '-',
-          status: getCompanyStatusText(status),
-          establishDate: establishDate || '-',
-          lastChangeDate: lastChangeDate || '-',
-          registrationAuthority: registrationAuthority || '-',
-          address: getField(item, [
-            'Company_Location', 'company_location', 'CompanyLocation', 'COMPANY_LOCATION',
-            '公司地址', 'address', 'Address', 'ADDRESS', 'Company_Address', 'company_address',
-            'location', 'Location', '公司所在地'
-          ]) || '-',
-          capitalTotal: capitalTotal ? (parseInt(capitalTotal) || parseFloat(capitalTotal) || null) : null,
-          paidInCapital: paidInCapital ? (parseInt(paidInCapital) || parseFloat(paidInCapital) || null) : null,
+        // 提取資本總額 - 優先使用實際 API 的鍵名
+        const capitalTotalRaw = findValue([
+          'Capital_Stock_Amount', // 實際 API 鍵名（優先）
+          'capital_stock_amount', 'CapitalStockAmount', 'CAPITAL_STOCK_AMOUNT',
+          'Capital_Stock_Total', 'capital_stock_total', 'CapitalStockTotal', 'CAPITAL_STOCK_TOTAL',
+          'Capital_Amount', 'capital_amount', 'CapitalAmount', 'CAPITAL_AMOUNT',
+          'capitalTotal', 'CapitalTotal', 'capital_total', 'CAPITAL_TOTAL',
+          '資本總額', '資本額', '總資本額', '資本總額新台幣', '資本總額(元)',
+          'capital', 'Capital', 'CAPITAL', 'totalCapital', 'total_capital'
+        ], null, '資本總額')
+        const capitalTotal = capitalTotalRaw ? (parseInt(capitalTotalRaw) || parseFloat(capitalTotalRaw) || null) : null
+        
+        // 提取實收資本額 - 優先使用實際 API 的鍵名
+        const paidInCapitalRaw = findValue([
+          'Paid_In_Capital_Amount', // 實際 API 鍵名（優先）
+          'paid_in_capital_amount', 'PaidInCapitalAmount', 'PAID_IN_CAPITAL_AMOUNT',
+          'Capital_Stock_Total_Paid_In', 'capital_stock_total_paid_in', 'CapitalStockTotalPaidIn',
+          'CAPITAL_STOCK_TOTAL_PAID_IN',
+          'Paid_In_Capital', 'paid_in_capital', 'PaidInCapital', 'PAID_IN_CAPITAL',
+          'PaidCapital', 'paid_capital', 'Paid_Capital', 'PAID_CAPITAL',
+          'Total_Paid_In', 'total_paid_in', 'TotalPaidIn', 'totalPaidIn',
+          'paidInCapital', 'paid_in_capital_amount', 'paidInCapitalAmount',
+          '實收資本額', '實收資本', '實收', '實收額', '實收資本額新台幣', '實收資本額(元)',
+          'paidCapital', 'paid_capital', 'paidCapitalAmount'
+        ], null, '實收資本額')
+        const paidInCapital = paidInCapitalRaw ? (parseInt(paidInCapitalRaw) || parseFloat(paidInCapitalRaw) || null) : null
+        
+        // 提取公司負責人 - 直接使用 Responsible_Name（實際 API 鍵名）
+        let Responsible_Name = '-'
+        
+        // 直接從原始資料中提取 Responsible_Name
+        if (originalData['Responsible_Name'] !== undefined && originalData['Responsible_Name'] !== null && originalData['Responsible_Name'] !== '') {
+          const Responsible_NameValue = originalData['Responsible_Name']
+          if (typeof Responsible_NameValue === 'string') {
+            Responsible_Name = Responsible_NameValue
+            console.log(`[DEBUG] 公司負責人 找到於鍵: Responsible_Name, 值: ${Responsible_Name}`)
+          } else if (Array.isArray(Responsible_NameValue) && Responsible_NameValue.length > 0) {
+            // 如果是陣列，取第一個
+            const first = Responsible_NameValue[0]
+            if (typeof first === 'string') {
+              Responsible_Name = first
+            } else if (typeof first === 'object' && first !== null) {
+              Responsible_Name = getField(first, ['Name', 'name', '姓名', 'Responsible_Name', 'responsible_name']) || '-'
+            }
+          } else if (typeof Responsible_NameValue === 'object' && Responsible_NameValue !== null) {
+            // 如果是物件，提取姓名
+            Responsible_Name = getField(Responsible_NameValue, ['Name', 'name', '姓名', 'Responsible_Name', 'responsible_name']) || '-'
+          }
         }
+        
+        if (Responsible_Name === '-') {
+          console.log(`[DEBUG] 公司負責人 未找到，原始資料中的鍵:`, Object.keys(originalData))
+        }
+        
+        // 提取地址 - 優先使用實際 API 的鍵名
+        const address = findValue([
+          'Company_Location', // 實際 API 鍵名
+          'company_location', 'CompanyLocation', 'COMPANY_LOCATION',
+          '公司地址', 'address', 'Address', 'ADDRESS', 'Company_Address', 'company_address',
+          'location', 'Location', '公司所在地', 'addr', 'Addr', 'ADDR'
+        ], null, '地址') || '-'
+        
+        const formattedItem = {
+          name: name,
+          taxId: taxId,
+          status: status,
+          establishDate: establishDate,
+          lastChangeDate: lastChangeDate,
+          registrationAuthority: registrationAuthority,
+          address: address,
+          capitalTotal: capitalTotal,
+          paidInCapital: paidInCapital,
+          Responsible_Name: Responsible_Name,
+          Responsible_Name: Responsible_Name,
+          president: Responsible_Name, // 為了向後兼容，同時保留 president 欄位
+          originalData: originalData, // 保留原始資料以便顯示所有欄位
+        }
+        
+        console.log(`[DEBUG] 格式化後的資料:`, formattedItem)
+        console.log(`[DEBUG] 提取結果摘要:`, {
+          name: name !== '-' ? `✓ ${name}` : '✗ 未找到',
+          taxId: taxId !== '-' ? `✓ ${taxId}` : '✗ 未找到',
+          status: status !== '-' ? `✓ ${status}` : '✗ 未找到',
+          establishDate: establishDate !== '-' ? `✓ ${establishDate}` : '✗ 未找到',
+          lastChangeDate: lastChangeDate !== '-' ? `✓ ${lastChangeDate}` : '✗ 未找到',
+          registrationAuthority: registrationAuthority !== '-' ? `✓ ${registrationAuthority}` : '✗ 未找到',
+          capitalTotal: capitalTotal !== null ? `✓ ${capitalTotal}` : '✗ 未找到',
+          paidInCapital: paidInCapital !== null ? `✓ ${paidInCapital}` : '✗ 未找到',
+          Responsible_Name: Responsible_Name !== '-' ? `✓ ${Responsible_Name}` : '✗ 未找到',
+          president: Responsible_Name !== '-' ? `✓ ${Responsible_Name}` : '✗ 未找到'
+        })
+        
+        return formattedItem
       })
       
       // 處理資本額資料（如果資本額 API 有資料，優先使用）
@@ -486,46 +628,56 @@ const CompanyQuery = () => {
         }
         
         // 處理負責人資料 - 嘗試多種可能的欄位名稱
-        let presidentData = null
-        
-        const possiblePresidentKeys = [
-          'president', 'President', 'PRESIDENT', '負責人', '負責人資訊',
-          'responsible_person', 'responsiblePerson', 'ResponsiblePerson',
-          '法人代表', '代表人', '代表'
-        ]
-        
-        for (const key of possiblePresidentKeys) {
-          if (originalItem[key] && Array.isArray(originalItem[key])) {
-            presidentData = originalItem[key]
-            break
-          } else if (originalItem[key] && typeof originalItem[key] === 'object') {
-            // 如果是單一物件，包裝成陣列
-            presidentData = [originalItem[key]]
-            break
-          }
-        }
-        
-        if (presidentData && presidentData.length > 0) {
-          item.president = presidentData.map(president => ({
-            name: getField(president, [
-              'Name', 'name', '姓名', 'President_Name', 'president_name',
-              'Name_CN', 'name_cn', '中文姓名'
-            ]) || '-',
-            identity: getField(president, [
-              'Identity', 'identity', '身份證字號', 'ID_No', 'id_no',
-              'President_ID', 'president_id', 'ID', 'id', '身份證'
-            ]) || '-',
-            address: getField(president, [
-              'Address', 'address', '地址', 'President_Address', 'president_address',
-              '住所', '住址'
-            ]) || '-',
-            phone: getField(president, [
-              'Phone', 'phone', '電話', 'President_Phone', 'president_phone',
-              'Tel', 'tel', '電話號碼', '聯絡電話'
-            ]) || '-',
-          }))
+        // 注意：如果 item.president 已經是字串（從 Responsible_Name 提取），不要覆蓋它
+        if (typeof item.president === 'string') {
+          // 如果已經是字串（包括 '-'），保留它，不進行處理
+          console.log(`[DEBUG] 公司負責人已是字串，保留: ${item.president}`)
         } else {
-          item.president = item.president || []
+          // 如果還不是字串，嘗試從原始資料中查找陣列或物件格式的負責人資料
+          let presidentData = null
+          
+          const possiblePresidentKeys = [
+            'president', 'President', 'PRESIDENT', '負責人', '負責人資訊',
+            'responsible_person', 'responsiblePerson', 'ResponsiblePerson',
+            '法人代表', '代表人', '代表'
+          ]
+          
+          for (const key of possiblePresidentKeys) {
+            if (originalItem[key] && Array.isArray(originalItem[key])) {
+              presidentData = originalItem[key]
+              break
+            } else if (originalItem[key] && typeof originalItem[key] === 'object') {
+              // 如果是單一物件，包裝成陣列
+              presidentData = [originalItem[key]]
+              break
+            }
+          }
+          
+          if (presidentData && presidentData.length > 0) {
+            item.president = presidentData.map(president => ({
+              name: getField(president, [
+                'Name', 'name', '姓名', 'President_Name', 'president_name',
+                'Name_CN', 'name_cn', '中文姓名'
+              ]) || '-',
+              identity: getField(president, [
+                'Identity', 'identity', '身份證字號', 'ID_No', 'id_no',
+                'President_ID', 'president_id', 'ID', 'id', '身份證'
+              ]) || '-',
+              address: getField(president, [
+                'Address', 'address', '地址', 'President_Address', 'president_address',
+                '住所', '住址'
+              ]) || '-',
+              phone: getField(president, [
+                'Phone', 'phone', '電話', 'President_Phone', 'president_phone',
+                'Tel', 'tel', '電話號碼', '聯絡電話'
+              ]) || '-',
+            }))
+          } else {
+            // 如果沒有找到陣列或物件格式的負責人資料，且 item.president 也不是字串，則設為空陣列
+            if (typeof item.president !== 'string') {
+              item.president = item.president || []
+            }
+          }
         }
         
         // 處理股東資料 - 嘗試多種可能的欄位名稱
@@ -587,64 +739,6 @@ const CompanyQuery = () => {
     }
   }
 
-  // 查詢詳細資料
-  const handleQueryDetail = async (company) => {
-    if (!company || !company.taxId) {
-      setError('無法查詢詳細資料：缺少統一編號')
-      return
-    }
-
-    setLoadingDetail(true)
-    setSelectedCompany(company)
-    setError(null)
-
-    try {
-      const apiKey = '03922ECED6CA49669B3C1504E9FE6'
-      const functionName = 'company' // 或根據實際 API 文檔調整為 'detail' 或其他
-      const targetUrl = `https://kyc.tej.com.tw/api/search/${functionName}/${encodeURIComponent(company.taxId)}?api_key=${apiKey}`
-      const apiUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
-
-      console.log('查詢詳細資料 URL:', apiUrl)
-
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 秒超時
-
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        signal: controller.signal
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(`查詢詳細資料失敗 (${response.status})`)
-      }
-
-      const responseText = await response.text()
-      if (!responseText || responseText.trim() === '') {
-        throw new Error('詳細資料回應為空')
-      }
-
-      const detailData = JSON.parse(responseText)
-      console.log('詳細資料回應:', detailData)
-
-      // 合併詳細資料到現有結果
-      const updatedResults = Array.isArray(results) 
-        ? results.map(item => item.taxId === company.taxId ? { ...item, detail: detailData } : item)
-        : { ...results, detail: detailData }
-
-      setResults(updatedResults)
-    } catch (error) {
-      console.error('查詢詳細資料錯誤:', error)
-      setError(`查詢詳細資料失敗：${error.message}`)
-    } finally {
-      setLoadingDetail(false)
-    }
-  }
 
   return (
     <div className="company-query-page">
@@ -701,17 +795,6 @@ const CompanyQuery = () => {
             </button>
           </div>
 
-          <div className="query-options">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={includeDetails}
-                onChange={(e) => setIncludeDetails(e.target.checked)}
-              />
-              <span>包含詳細資訊（董事、股東等）</span>
-            </label>
-          </div>
-
           {error && (
             <div className="error-message">
               {error}
@@ -754,17 +837,32 @@ const CompanyQuery = () => {
                         <span className="info-label">設立日期：</span>
                         <span className="info-value">{formatDate(company.establishDate)}</span>
                       </div>
-                      <div className="info-row">
-                        <span className="info-label">最後變更日期：</span>
-                        <span className="info-value">{formatDate(company.lastChangeDate)}</span>
-                      </div>
+                    <div className="info-row">
+                      <span className="info-label">最後變更日期：</span>
+                      <span className="info-value">{formatDate(company.lastChangeDate)}</span>
                     </div>
+                      <div className="info-row">
+                        <span className="info-label">公司負責人：</span>
+                        <span className="info-value">
+                          {company.Responsible_Name || (typeof company.president === 'string' 
+                            ? company.president 
+                            : (Array.isArray(company.president) && company.president.length > 0 
+                              ? company.president.map(p => (typeof p === 'string' ? p : (p.name || '-'))).join(', ')
+                              : '-'))}
+                        </span>
+                      </div>
+                    <div className="info-row">
+                      <span className="info-label">公司地址：</span>
+                      <span className="info-value">{company.address || '-'}</span>
+                    </div>
+                  </div>
                     {company.detail && (
                       <div className="company-detail-expanded">
                         <h5 className="detail-expanded-title">詳細資料</h5>
                         <pre className="detail-json">{JSON.stringify(company.detail, null, 2)}</pre>
                       </div>
                     )}
+                    
                   </div>
                 ))}
               </div>
@@ -809,6 +907,20 @@ const CompanyQuery = () => {
                       <span className="detail-label">最後變更日期</span>
                       <span className="detail-value">{formatDate(results.lastChangeDate)}</span>
                     </div>
+                    <div className="detail-item">
+                      <span className="detail-label">公司負責人</span>
+                      <span className="detail-value">
+                        {results.Responsible_Name || (typeof results.president === 'string' 
+                          ? results.president 
+                          : (Array.isArray(results.president) && results.president.length > 0 
+                            ? results.president.map(p => (typeof p === 'string' ? p : (p.name || '-'))).join(', ')
+                            : '-'))}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">公司地址</span>
+                      <span className="detail-value">{results.address || '-'}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -826,28 +938,33 @@ const CompanyQuery = () => {
                   </div>
                 </div>
 
-                {includeDetails && results.president && results.president.length > 0 && (
-                  <div className="detail-section">
-                    <h4 className="detail-section-title">負責人資訊 ({results.president.length} 位)</h4>
-                    <div className="president-list">
-                      {results.president.map((president, index) => (
-                        <div key={index} className="president-item">
-                          <div className="president-info">
-                            <span className="president-name">{president.name || '-'}</span>
-                            {president.identity && president.identity !== '-' && (
-                              <span className="president-identity">身份證：{president.identity}</span>
-                            )}
-                            {president.address && president.address !== '-' && (
-                              <span className="president-address">地址：{president.address}</span>
-                            )}
-                            {president.phone && president.phone !== '-' && (
-                              <span className="president-phone">電話：{president.phone}</span>
-                            )}
+                {results.president && (
+                  Array.isArray(results.president) && results.president.length > 0 ? (
+                    <div className="detail-section">
+                      <h4 className="detail-section-title">負責人資訊 ({results.president.length} 位)</h4>
+                      <div className="president-list">
+                        {results.president.map((president, index) => (
+                          <div key={index} className="president-item">
+                            <div className="president-info">
+                              <span className="president-name">{president.name || '-'}</span>
+                              {president.identity && president.identity !== '-' && (
+                                <span className="president-identity">身份證：{president.identity}</span>
+                              )}
+                              {president.address && president.address !== '-' && (
+                                <span className="president-address">地址：{president.address}</span>
+                              )}
+                              {president.phone && president.phone !== '-' && (
+                                <span className="president-phone">電話：{president.phone}</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : typeof results.president === 'string' && results.president !== '-' ? (
+                    // 如果 president 是字串，已經在基本資料中顯示了，不需要重複顯示
+                    null
+                  ) : null
                 )}
 
                 {results.directors && results.directors.length > 0 && (
@@ -871,7 +988,7 @@ const CompanyQuery = () => {
                   </div>
                 )}
 
-                {includeDetails && results.shareholders && results.shareholders.length > 0 && (
+                {results.shareholders && results.shareholders.length > 0 && (
                   <div className="detail-section">
                     <h4 className="detail-section-title">股東資訊 ({results.shareholders.length} 位)</h4>
                     <div className="shareholders-list">
@@ -889,6 +1006,7 @@ const CompanyQuery = () => {
                     </div>
                   </div>
                 )}
+
               </div>
             )}
           </div>
